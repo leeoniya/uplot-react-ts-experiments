@@ -14,6 +14,7 @@
 ## Installation
 1. Clone/download repo
 2. `yarn install` (or `npm install` for npm)
+3. This fork uses Yarn 3.2 &amp; PnP. For VSCode, install ZipFS plugin and follow https://yarnpkg.com/getting-started/editor-sdks#vscode
 
 ## Usage
 **Development**

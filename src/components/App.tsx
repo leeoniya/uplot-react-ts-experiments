@@ -1,21 +1,19 @@
 import * as React from "react";
-import { hot } from "react-hot-loader";
 
-const reactLogo = require("./../assets/img/react_logo.svg");
-import "./../assets/scss/App.scss";
+import "uplot/dist/uPlot.min.css";
+import { debugLog } from "../debug";
+import { MyPanel } from "./MyPanel";
+import { Panel0 } from "./Panel0";
 
-class App extends React.Component<Record<string, unknown>, undefined> {
-  public render() {
-    return (
-      <div className="app">
-        <h1>Hello World!</h1>
-        <p>Foo to the barz</p>
-        <img src={reactLogo.default} height="480" />
-      </div>
-    );
-  }
-}
+const App = () => {
+  debugLog("App()");
 
-declare let module: Record<string, unknown>;
+  return (
+    <div id="app">
+      <Panel0></Panel0>
+      <MyPanel></MyPanel>
+    </div>
+  );
+};
 
-export default hot(module)(App);
+export default App;

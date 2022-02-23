@@ -5,7 +5,7 @@ This document aims to be an architectural overview and general guide for how pan
 ---
 ### What is uPlot?
 
-uPlot is a JavaScript charting library based on Canvas2D (in contrast to SVG). It has an imperative API focused on maximizing rendering performance for large timeseries datasets and on reducing UI interaction latency. Currently, the following core panels use it for visualization:
+[uPlot](https://github.com/leeoniya/uPlot) is a JavaScript charting library based on Canvas2D (in contrast to SVG). It has an imperative API focused on maximizing rendering performance of large timeseries datasets and reducing UI interaction latency for data exploration. Currently, the following core panels use it for visualization:
 
 - TimeSeries
 - Stat (sparkline)
@@ -41,13 +41,13 @@ const data = [
 
 const container = document.getElementById('chart-wrapper');
 
-const plot = new uPlot(opts, data, container);
+let plot = new uPlot(opts, data, container);
 
 // we can swap in new data at a later time
 plot.setData([
-  [1640995200, 1640998800, 1641002400],
-  [       100,        125,        200],
-  [        25,       null,         49],
+  [1641002400, 1641006000],
+  [         1,          2],
+  [        30,         90],
 ]);
 
 // or resize the plot
@@ -61,13 +61,13 @@ plot = null;
 ---
 ### UPlotReact.tsx
 
-In Grafana, we destroy and re-initialize the uPlot instance whenever options change that are not covered by `plot.setData()` and `plot.setSize()`. While uPlot has some additional methods such as `plot.addSeries()`, they are not used to simplify integration and change tracking; most of the time, options tend to be static and even a full re-init is extremely fast when they must change during panel editing or occasional data structure changes.
+In Grafana, we destroy and re-initialize the uPlot instance whenever options change that are not covered by `plot.setData()` and `plot.setSize()`. While uPlot has some additional methods such as `plot.addSeries()`, they are not used (to simplify integration and eliminate change tracking); most of the time, options tend to be static and even a full re-init is extremely fast when they must change during panel editing or occasional data structure changes.
 
 ```jsx
 <UPlotReact width={width} height={height} opts={opts} data={data} oninit={getInstance} />
 ```
 
-`<UPlotReact>` is a minimal React wrapper for uPlot that implements these semantics for the raw API shown above. The optional `oninit` prop accepts a callback in the form of `const getInstance = (plot: uPlot | null) => {};`. This callback is invoked with the new `plot` instance whenever the underlying plot is re-initialized or with `null` when the component is unmounted and the plot is destroyed without re-creation. `oninit` can be used to populate a React context, call a `setState()` a parent component, etc.
+`<UPlotReact>` is a minimal React wrapper for uPlot that implements these semantics for the raw API shown above. The optional `oninit` prop accepts a callback in the form of `const getInstance = (plot: uPlot | null) => {};`. This callback is invoked with the new `plot` instance whenever the underlying plot is re-initialized or with `null` when the component is unmounted and the plot is destroyed without re-creation. `oninit` can be used to populate a React context, call `setState()` in a parent component, etc.
 
 **IMPORTANT:** To avoid excessive `plot.setData()` and `plot.destroy()` calls, it is important to maintain referential integrity of `data` and `opts` when they do not actually change. Some ways to avoid this is by using `useMemo()`, `useState()`, or `useRef()` hooks. A common React pattern that can destroy performance is copying or spreading these props into new objects on every re-render, e.g. `<UPlotReact width={width} height={height} opts={{...opts}} data={[...data]}>`.
 
@@ -90,7 +90,7 @@ const opts = builder.build();
 ---
 ### UPlotChart.tsx
 
-`<UPlotChart>` is a [HOC](https://reactjs.org/docs/higher-order-components.html) wrapper around `<UPlotReact>` with a [`children()` render prop](https://reactjs.org/docs/render-props.html#using-props-other-than-render). Rather than accepting a raw uPlot `opts` prop, it accepts a work-in-progress, partially-built `UPlotOptsBuilder` within a `config` prop. It passes this `builder` down to child components/plugins which can then augment it prior to final `<UPlotReact>` init; the order in which this must happen is orchestrated by `<UPlotChart>`.
+`<UPlotChart>` is a [HOC](https://reactjs.org/docs/higher-order-components.html) wrapper around `<UPlotReact>` with a [`children()` render prop](https://reactjs.org/docs/render-props.html#using-props-other-than-render). Rather than accepting a raw uPlot `opts` prop, it accepts a work-in-progress, partially-built `UPlotOptsBuilder` within a `config` prop. It passes this `builder` down to child components/plugins which can then augment it prior to final `<UPlotReact>` init; the order in which this must happen is orchestrated by `<UPlotChart>`. Once all child plugin components have booted, `<UPlotChart>` calls `config.builder.build()` and caches the resulting `opts` object, which it passes down to `<UPlotReact>` for final plot instance creation.
 
 ```jsx
 // should parse, filter, transform, and aggregate the raw data as necessary for the viz, tooltip and legend

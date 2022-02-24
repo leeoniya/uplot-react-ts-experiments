@@ -3,6 +3,13 @@
 This document aims to be an architectural overview and general guide for how panels based on uPlot should be structured.
 
 ---
+### Target Audience
+
+- Grafana Labs core developers maintaining existing and developing new built-in visualizations
+- Third-party plugin developers wishing to understand or leverage the same architecture (and this documentation!)
+- Those seeking uPlot/React integration examples within a non-trivial, existing codebase
+
+---
 ### What is uPlot?
 
 [uPlot](https://github.com/leeoniya/uPlot) is a JavaScript charting library based on [Canvas2D](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D) (in contrast to SVG). It has flexible, imperative API with a focus on maximizing rendering performance of large timeseries datasets and reducing UI interaction latency for data exploration. Currently, the following core panels use it for visualization:

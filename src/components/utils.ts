@@ -52,39 +52,43 @@ export const prepData = (frames: DataFrame[], opts: PrepDataOpts): MyPanelData =
   };
 };
 
+// should only hold static opts or getters for constructor init
 export interface PrepCfgOpts<TData> {
-  data: TData;
   timeZone: string;
-  get timeRange(): TimeRange;
-
   mode: PanelMode;
 }
 
-export interface MyPanelConfig extends UPlotChartConfig {
-  withData: (data: MyPanelData) => void;
-};
+// should only hold dynamic props that may be updated without config re-init
+export interface PrepCfgCtx {
+  timeRange: TimeRange,
+  data: MyPanelData,
+}
 
-// should accept panelOpts, fieldConfig, data, pre-existing builder
+export interface MyPanelConfig extends UPlotChartConfig {
+  setCtx: (ctx: PrepCfgCtx) => void;
+}
+
+// should accept panelOpts, ctx.data, pre-existing builder
 export const prepConfig = (
   opts: PrepCfgOpts<MyPanelData>,
+  ctx: PrepCfgCtx,
   builder?: UPlotOptsBuilder,
 ): MyPanelConfig => {
   builder = builder ?? new UPlotOptsBuilder();
+
+  // refreshes ctx within this closure
+  const setCtx = (_ctx: PrepCfgCtx) => {
+    debugLog("cfg.withData()");
+    ctx = _ctx;
+  };
 
   const subscribers = {
     hover: new Set<Handler>(),
     move: new Set<Handler>(),
   };
 
-  let { data } = opts;
-  // refreshes initial data within this closure
-  const withData = (_data) => {
-    debugLog("cfg.withData()");
-    data = _data;
-  };
-
   builder.addHook("draw", () => {
-    debugLog("build quadtree & draw bar labels using", data);
+    debugLog("build quadtree & draw bar labels using", ctx.data);
   });
 
   function on(type: EventType, handler: Handler) {
@@ -114,7 +118,7 @@ export const prepConfig = (
   }
 
   return {
-    withData,
+    setCtx,
     builder,
     on,
   };

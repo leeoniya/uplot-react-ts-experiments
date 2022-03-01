@@ -33,7 +33,7 @@ export interface UPlotChartEvent {
 
 export interface UPlotChartConfig {
   error?: string | null;
-  withData: (data: any) => void;
+  setCtx: (ctx: any) => void;
   builder: UPlotOptsBuilder;
   on(type: EventType, handler: Handler): void;
 }

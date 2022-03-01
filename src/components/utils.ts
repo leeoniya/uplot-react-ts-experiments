@@ -29,6 +29,7 @@ export interface DataFrame {
 export interface MyPanelData {
   frames: DataFrame[]; // original data.series
   aligned: AlignedData;
+  error?: string | null,
   // stacked:
   // sorted:
   // other intermediate transforms?
@@ -39,37 +40,35 @@ export type PanelMode = "bubble" | "scatter";
 export type TimeRange = { from: number; to: number };
 
 export interface PrepDataOpts {
-  frames: DataFrame[];
+  mode: PanelMode;
 }
 
-export type PrepDataFn = (opts: PrepDataOpts) => MyPanelData;
-
-export const prepData: PrepDataFn = (opts) => {
+export const prepData = (frames: DataFrame[], opts: PrepDataOpts): MyPanelData => {
   return {
-    frames: opts.frames,
-    aligned: opts.frames.flatMap((frame) =>
+    frames: frames,
+    aligned: frames.flatMap((frame) =>
       frame.fields.map((field) => field.values),
     ),
   };
 };
 
-export interface PrepCfgOpts {
-  frames: DataFrame[];
+export interface PrepCfgOpts<TData> {
+  data: TData;
   timeZone: string;
   get timeRange(): TimeRange;
 
   mode: PanelMode;
 }
 
-export interface UPlotChartConfigWithPrep<PrepData> extends UPlotChartConfig {
-  prepData: PrepData;
-}
+export interface MyPanelConfig extends UPlotChartConfig {
+  withData: (data: MyPanelData) => void;
+};
 
 // should accept panelOpts, fieldConfig, data, pre-existing builder
 export const prepConfig = (
-  opts: PrepCfgOpts,
+  opts: PrepCfgOpts<MyPanelData>,
   builder?: UPlotOptsBuilder,
-): UPlotChartConfigWithPrep<PrepDataFn> => {
+): MyPanelConfig => {
   builder = builder ?? new UPlotOptsBuilder();
 
   const subscribers = {
@@ -77,7 +76,12 @@ export const prepConfig = (
     move: new Set<Handler>(),
   };
 
-  let data: MyPanelData;
+  let { data } = opts;
+  // refreshes initial data within this closure
+  const withData = (_data) => {
+    debugLog("cfg.withData()");
+    data = _data;
+  };
 
   builder.addHook("draw", () => {
     debugLog("build quadtree & draw bar labels using", data);
@@ -110,7 +114,7 @@ export const prepConfig = (
   }
 
   return {
-    prepData: (...args) => (data = prepData(...args)),
+    withData,
     builder,
     on,
   };

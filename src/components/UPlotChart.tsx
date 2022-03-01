@@ -32,6 +32,8 @@ export interface UPlotChartEvent {
 // set up custom pathbuilders or overrides
 
 export interface UPlotChartConfig {
+  error?: string | null;
+  withData: (data: any) => void;
   builder: UPlotOptsBuilder;
   on(type: EventType, handler: Handler): void;
 }

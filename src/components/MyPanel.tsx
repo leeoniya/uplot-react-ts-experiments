@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from "react";
+import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { debugLog } from "../debug";
 import { ToolTip } from "./Tooltip";
 import { UMouse } from "./UMouse";
@@ -74,7 +74,7 @@ export const MyPanel = () => {
     });
   }, [cfg, panelProps.data]);
 
-  const size = useMemo(() => ({ width: 800, height: 400 }), []);
+  const [size, setSize] = useState({ width: 800, height: 400 });
 
   return (
     <div className="panel" style={{ overflow: "auto", resize: "both" }}>

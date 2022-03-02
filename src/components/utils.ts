@@ -64,7 +64,7 @@ export interface PrepCfgCtx {
   data: MyPanelData,
 }
 
-export interface MyPanelConfig extends UPlotChartConfig {
+export interface MyPanelConfig extends UPlotChartConfig<PrepCfgCtx> {
   setCtx: (ctx: PrepCfgCtx) => void;
 }
 

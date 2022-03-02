@@ -31,9 +31,9 @@ export interface UPlotChartEvent {
 
 // set up custom pathbuilders or overrides
 
-export interface UPlotChartConfig {
+export interface UPlotChartConfig<TCtx> {
   error?: string | null;
-  setCtx: (ctx: any) => void;
+  setCtx: (ctx: TCtx) => void;
   builder: UPlotOptsBuilder;
   on(type: EventType, handler: Handler): void;
 }
@@ -45,15 +45,15 @@ export interface UPlotChartConfig {
 // 3. Or manually modify/extend uPlot's DOM
 //export type UPlotChartPlugin = React.ReactComponentElement<any>;
 
-interface UPlotChartProps extends Omit<UPlotReactProps, "opts"> {
-  config: UPlotChartConfig;
+interface UPlotChartProps<TCtx> extends Omit<UPlotReactProps, "opts"> {
+  config: UPlotChartConfig<TCtx>;
   children?: (
-    config: UPlotChartConfig,
+    config: UPlotChartConfig<TCtx>,
     plot?: uPlot | null,
   ) => React.ReactElement; //) => UPlotChartPlugin | UPlotChartPlugin[];
 }
 
-export const UPlotChart = (props: UPlotChartProps) => {
+export const UPlotChart = <TCtx,>(props: UPlotChartProps<TCtx>) => {
   debugLog("UPlotChart()");
 
   const [plot, setPlot] = useState<uPlot | null>(null);

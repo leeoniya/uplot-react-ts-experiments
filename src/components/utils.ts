@@ -29,7 +29,7 @@ export interface DataFrame {
 export interface MyPanelData {
   frames: DataFrame[]; // original data.series
   aligned: AlignedData;
-  error?: string | null,
+  error?: string | null;
   // stacked:
   // sorted:
   // other intermediate transforms?
@@ -43,9 +43,13 @@ export interface PrepDataOpts {
   mode: PanelMode;
 }
 
-export const prepData = (frames: DataFrame[], opts: PrepDataOpts): MyPanelData => {
+export const prepData = (
+  frames: DataFrame[],
+  opts: PrepDataOpts,
+): MyPanelData => {
   return {
     frames: frames,
+    //joined:
     aligned: frames.flatMap((frame) =>
       frame.fields.map((field) => field.values),
     ),
@@ -60,8 +64,8 @@ export interface PrepCfgOpts<TData> {
 
 // should only hold dynamic props that may be updated without config re-init
 export interface PrepCfgCtx {
-  timeRange: TimeRange,
-  data: MyPanelData,
+  timeRange: TimeRange;
+  data: MyPanelData;
 }
 
 export interface MyPanelConfig extends UPlotChartConfig<PrepCfgCtx> {

@@ -1,9 +1,16 @@
-import React, { ReactElement, useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { ReactElement, useMemo, useState } from "react";
 import { debugLog } from "../debug";
 import { ToolTip } from "./Tooltip";
 import { UMouse } from "./UMouse";
 import { UPlotChart } from "./UPlotChart";
-import { PrepCfgCtx, FieldType, PanelMode, prepConfig, prepData, TimeRange } from "./utils";
+import {
+  PrepCfgCtx,
+  FieldType,
+  PanelMode,
+  prepConfig,
+  prepData,
+  TimeRange,
+} from "./utils";
 
 const panelProps = {
   timeZone: "UTC",
@@ -40,8 +47,16 @@ export const MyPanel = () => {
   debugLog("Panel()");
 
   // propsToDiff
-  const invalidateConfig = [panelProps.data.structureRev, panelProps.timeZone, panelProps.options.mode];
-  const invalidateData = [...invalidateConfig, panelProps.data, panelProps.options.mode];
+  const invalidateConfig = [
+    panelProps.data.structureRev,
+    panelProps.timeZone,
+    panelProps.options.mode,
+  ];
+  const invalidateData = [
+    ...invalidateConfig,
+    panelProps.data,
+    panelProps.options.mode,
+  ];
 
   const data = useMemo(() => {
     return prepData(panelProps.data.series, {
@@ -54,22 +69,22 @@ export const MyPanel = () => {
     data,
   };
 
-  const cfg = useMemo(
-    () => {
-      if (data.error) return;
+  const cfg = useMemo(() => {
+    if (data.error) return;
 
-      const cfg = prepConfig({
+    const cfg = prepConfig(
+      {
         timeZone: panelProps.timeZone,
         mode: panelProps.options.mode, // some custom panel option for this vis
-      }, cfgCtx);
+      },
+      cfgCtx,
+    );
 
-      // prepConfig normally does this internally, but this shows that we can also augment here if needed
-      cfg.builder.addSeries({ stroke: "red" });
+    // prepConfig normally does this internally, but this shows that we can also augment here if needed
+    cfg.builder.addSeries({ stroke: "red" });
 
-      return cfg;
-    },
-    invalidateConfig,
-  );
+    return cfg;
+  }, invalidateConfig);
 
   let error: ReactElement | null = null;
 
@@ -99,7 +114,7 @@ export const MyPanel = () => {
             </>
           )}
         </UPlotChart>
-    )}
+      )}
     </div>
   );
 };

@@ -52,11 +52,7 @@ export const MyPanel = () => {
     panelProps.timeZone,
     panelProps.options.mode,
   ];
-  const invalidateData = [
-    ...invalidateConfig,
-    panelProps.data,
-    panelProps.options.mode,
-  ];
+  const invalidateData = [...invalidateConfig, panelProps.data];
 
   const data = useMemo(() => {
     return prepData(panelProps.data.series, {

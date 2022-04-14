@@ -1,63 +1,44 @@
 import { AlignedData } from "uplot";
 import { debugLog } from "../debug";
+import { DataFrame, TimeRange } from "./types";
 import {
   EventType,
   Handler,
   UPlotChartConfig,
   UPlotChartEvent,
+  VizDataBase,
 } from "./UPlotChart";
 import { UPlotOptsBuilder } from "./UPlotOptsBuilder";
 
-export const enum FieldType {
-  time = "time",
-  number = "number",
-}
-
-export interface Field {
-  name: string;
-  type: FieldType;
-  values: number[];
-}
-
-export interface DataFrame {
-  length: number;
-  fields: Field[];
-}
-
-// viz-specific interface that is passed down to viz, legend, tooltip components
-// can be facets, etc
-export interface MyPanelData {
-  frames: DataFrame[]; // original data.series
-  aligned: AlignedData;
-  error?: string | null;
-  // stacked:
-  // sorted:
-  // other intermediate transforms?
-}
-
 export type PanelMode = "bubble" | "scatter";
-
-export type TimeRange = { from: number; to: number };
 
 export interface PrepDataOpts {
   mode: PanelMode;
 }
 
+export interface MyPreppedData {
+  frames: DataFrame[];
+  //colorByField:
+  //xField:
+  //yFields:
+  error: null;
+}
+
+// should
 export const prepData = (
   frames: DataFrame[],
   opts: PrepDataOpts,
-): MyPanelData => {
+): MyPreppedData => {
   return {
-    frames: frames,
-    //joined:
-    aligned: frames.flatMap((frame) =>
-      frame.fields.map((field) => field.values),
-    ),
+    frames,
+    error: null,
   };
 };
 
+type StackSumsBySeriesIdx = [null, ...number[][]];
+
 // should only hold static opts or getters for constructor init
-export interface PrepCfgOpts<TData> {
+export interface PrepCfgOpts {
   timeZone: string;
   mode: PanelMode;
 }
@@ -65,26 +46,76 @@ export interface PrepCfgOpts<TData> {
 // should only hold dynamic props that may be updated without config re-init
 export interface PrepCfgCtx {
   timeRange: TimeRange;
-  data: MyPanelData;
+  data: MyPreppedData;
 }
 
-export interface MyPanelConfig extends UPlotChartConfig<PrepCfgCtx> {
+export interface MyVizData extends VizDataBase {
+  // final data for u.setData(), joined -> negY -> stacked
+  data: AlignedData; // | FacetedData
+  // joined & gapped only (raw values by index)
+  joined: AlignedData;
+  // sums for computing in tooltip and value label rendering
+  stackSums: {
+    byValue: StackSumsBySeriesIdx;
+    byPercent: StackSumsBySeriesIdx;
+  };
+
+  // parsed?
+  // cleaned?
+
+  // from thresholds or value mappings
+  mapped: {
+    text: [];
+    color: [];
+    number: [];
+    // icon:
+    // size:
+    // opacity:
+    // label:
+    // state:
+    // thresholdIndex? steps?
+    /*
+    const display: DisplayValue = {
+      text,
+      numeric,
+      prefix,
+      suffix,
+      color,
+    };
+
+    if (icon != null) {
+      display.icon = icon;
+    }
+
+    if (percent != null) {
+      display.percent = percent;
+    }
+    */
+  };
+}
+
+interface StackingGroup {
+  series: number[];
+  dir: 1 | -1;
+}
+
+export interface MyPanelConfig extends UPlotChartConfig<PrepCfgCtx, MyVizData> {
   setCtx: (ctx: PrepCfgCtx) => void;
+  getCtx: () => PrepCfgCtx;
+  vizData: () => MyVizData;
+
+  stacks: StackingGroup[];
 }
 
-// should accept panelOpts, ctx.data, pre-existing builder
 export const prepConfig = (
-  opts: PrepCfgOpts<MyPanelData>,
+  opts: PrepCfgOpts,
   ctx: PrepCfgCtx,
   builder?: UPlotOptsBuilder,
 ): MyPanelConfig => {
   builder = builder ?? new UPlotOptsBuilder();
 
-  // refreshes ctx within this closure
-  const setCtx = (_ctx: PrepCfgCtx) => {
-    debugLog("cfg.withData()");
-    ctx = _ctx;
-  };
+  //const stacks = getStacks(ctx.data.y);
+  //builder.setStacks(stacks); // internally it does genBands/addBand during config building
 
   const subscribers = {
     hover: new Set<Handler>(),
@@ -121,9 +152,53 @@ export const prepConfig = (
     set.add(handler);
   }
 
+  // internal cache, kept in sync with ctx.data
+  let vizData: MyVizData = null;
+  const getVizData = () => {
+    if (vizData == null) {
+      debugLog("regen getVizData()");
+
+      const joined = ctx.data.frames.flatMap((frame) =>
+        frame.fields.map((field) => field.values),
+      );
+
+      vizData = {
+        data: joined,
+        joined: joined,
+        // TODO: omit when not stacking
+        stackSums: {
+          byValue: [null, "accum", "accum"],
+          byPercent: [null, "accum", "accum"],
+        },
+      };
+    } else {
+      debugLog("cached getVizData()");
+    }
+
+    return vizData;
+  };
+
+  const setCtx = (_ctx: PrepCfgCtx) => {
+    debugLog("cfg.setCtx()");
+    // this relies on memo at the panel level
+    if (_ctx.data != ctx.data) {
+      vizData = null;
+    }
+    ctx = _ctx;
+  };
+
+  // origin, seriesIdx, displayProcessor, value coercion
+  // field origins should already be attached
+  // data.frames (original)
+  // all selected "y" fields should ave origins mapped into data.frames
+
   return {
-    setCtx,
+    stacks: [],
+
     builder,
     on,
+    getCtx: () => ctx,
+    setCtx,
+    vizData: getVizData,
   };
 };

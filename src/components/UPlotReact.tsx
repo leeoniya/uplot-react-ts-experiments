@@ -12,7 +12,7 @@ export interface UPlotReactProps {
   width: number;
   height: number;
   opts: OptsDimless;
-  data: AlignedData; // {aligned:, stacked: }
+  data: AlignedData;
   oninit?: (plot: uPlot) => void;
 }
 

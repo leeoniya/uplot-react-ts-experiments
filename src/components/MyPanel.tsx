@@ -1,15 +1,15 @@
 import React, { ReactElement, useMemo, useState } from "react";
 import { debugLog } from "../debug";
 import { ToolTip } from "./Tooltip";
+import { FieldType, TimeRange } from "./types";
 import { UMouse } from "./UMouse";
-import { UPlotChart } from "./UPlotChart";
+import { UPlotChart, UPlotChartConfig } from "./UPlotChart";
 import {
   PrepCfgCtx,
-  FieldType,
   PanelMode,
   prepConfig,
   prepData,
-  TimeRange,
+  MyPanelConfig,
 } from "./utils";
 
 const panelProps = {
@@ -55,6 +55,21 @@ export const MyPanel = () => {
   const invalidateData = [...invalidateConfig, panelProps.data];
 
   const data = useMemo(() => {
+    /*
+    // generic for most libs
+    prepFrames(frames, opts)
+      summary/stats not done in transforms
+      built-in auto-transforms
+      structured clone?
+      filtering
+      cleaning Inf, NaN, etc.
+      sorting (right shape? choose /sort organize fields, coerce types, parse, clean data, detect errors)
+      process dimensionsuppliers, fieldmatchers
+      coercing units
+      joining, field.origin setting          // is this a uPlot-ism that should be at end with stacking, negY?
+      split exemplar frame from heatmap
+      return {frames, joined, colorField: xFields:};
+    */
     return prepData(panelProps.data.series, {
       mode: panelProps.options.mode, // some custom panel option for this vis
     });
@@ -97,14 +112,19 @@ export const MyPanel = () => {
   return (
     <div className="panel" style={{ overflow: "auto", resize: "both" }}>
       {error ?? (
-        <UPlotChart {...size} config={cfg} data={data.aligned}>
-          {(cfg, plot) => (
+        <UPlotChart {...size} config={cfg}>
+          {(cfg, plot, vizData) => (
             <>
-              <UMouse config={cfg}>
+              <UMouse<MyPanelConfig> config={cfg}>
                 {(event, rect) => (
                   // also rect? plot?
                   // or wrap in VizTooltipContainer/popper to handle positioning w/rect logic
-                  <ToolTip evt={event} rect={rect} data={data} />
+                  <ToolTip
+                    evt={event}
+                    rect={rect}
+                    data={data}
+                    vizData={vizData}
+                  />
                 )}
               </UMouse>
             </>

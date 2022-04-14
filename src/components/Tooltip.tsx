@@ -2,18 +2,19 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { debugLog } from "../debug";
 import { UPlotChartEvent } from "./UPlotChart";
-import { MyPanelData } from "./utils";
+import { MyPanelData, MyVizData } from "./utils";
 
 interface ToolTipProps {
   evt: UPlotChartEvent | null;
   rect: DOMRect;
   data: MyPanelData;
+  vizData: MyVizData;
 }
 
 // can wrap in <VizTooltipContainer> or <Popper> and leave ToolTip just responsible for content?
 // wrapper can offset coords by uplot's rect?
 // rect and data can come from uplot ctx?
-export const ToolTip = ({ evt, rect, data }: ToolTipProps) => {
+export const ToolTip = ({ evt, rect, data, vizData }: ToolTipProps) => {
   debugLog("ToolTip()");
 
   if (data && evt && evt.x >= 0) {
@@ -39,7 +40,7 @@ export const ToolTip = ({ evt, rect, data }: ToolTipProps) => {
             <tr key={seriesIdx}>
               <td>{seriesIdx}</td>
               <td>
-                {dataIdx == null ? "--" : data.aligned[seriesIdx][dataIdx]}
+                {dataIdx == null ? "--" : vizData.joined[seriesIdx][dataIdx]}
               </td>
             </tr>
           ))}

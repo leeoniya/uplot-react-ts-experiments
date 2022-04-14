@@ -12,7 +12,9 @@
  */
 
 import React, { useMemo, useState } from "react";
+import uPlot from "uplot";
 import { debugLog } from "../debug";
+import { DataFrame, TimeRange } from "./types";
 import { UPlotOptsBuilder } from "./UPlotOptsBuilder";
 import { UPlotReactProps, UPlotReact } from "./UPlotReact";
 
@@ -27,14 +29,29 @@ export interface UPlotChartEvent {
   // rects?
 }
 
-//const quadtree = new Quadtree();
+export interface VizDataBase {
+  data: uPlot.AlignedData; // | FacetedData
+}
 
-// set up custom pathbuilders or overrides
+export interface CtxBase {
+  data: {
+    frames: DataFrame[];
+  };
+  timeRange: TimeRange;
+}
 
-export interface UPlotChartConfig<TCtx> {
+export interface UPlotChartConfig<
+  TCtx extends CtxBase,
+  TVizData extends VizDataBase,
+> {
   error?: string | null;
+  // updates data & any dynamic panel props (timeRange) inside config closure
   setCtx: (ctx: TCtx) => void;
+  // joins, applies negY transforms, accums stacks
+  vizData: () => TVizData;
+  // generates final uPlot props before init
   builder: UPlotOptsBuilder;
+  // high level event subscription interface
   on(type: EventType, handler: Handler): void;
 }
 
@@ -45,34 +62,37 @@ export interface UPlotChartConfig<TCtx> {
 // 3. Or manually modify/extend uPlot's DOM
 //export type UPlotChartPlugin = React.ReactComponentElement<any>;
 
-interface UPlotChartProps<TCtx> extends Omit<UPlotReactProps, "opts"> {
-  config: UPlotChartConfig<TCtx>;
+interface UPlotChartProps<TCtx extends CtxBase, TVizData extends VizDataBase>
+  extends Omit<UPlotReactProps, "opts" | "data"> {
+  config: UPlotChartConfig<TCtx, TVizData>;
   children?: (
-    config: UPlotChartConfig<TCtx>,
+    config: UPlotChartConfig<TCtx, TVizData>, // TCfg
     plot?: uPlot | null,
+    vizData?: TVizData,
   ) => React.ReactElement; //) => UPlotChartPlugin | UPlotChartPlugin[];
 }
 
-export const UPlotChart = <TCtx,>(props: UPlotChartProps<TCtx>) => {
+export const UPlotChart = <TCtx extends CtxBase, TVizData extends VizDataBase>(
+  props: UPlotChartProps<TCtx, TVizData>,
+) => {
   debugLog("UPlotChart()");
 
   const [plot, setPlot] = useState<uPlot | null>(null);
 
+  // this is for deubug only; should just be <UPlotReact oninit={setPlot}
   const oninit = (plot: uPlot) => {
     debugLog("oninit!", plot);
     setPlot(plot);
   };
 
-  const {
-    width,
-    height,
-    config,
-    data,
-    children: getChildren = () => null,
-  } = props;
+  const { width, height, config, children: getChildren = () => null } = props;
+
+  // this expects that uPlot plugins will not amend the config in ways that affect how vizData() processes data (joins, stacking, negY)
+  // it also relies on config to internally cache/bust the result in sync with ctx.data changes
+  const vizData = config.vizData();
 
   // allow all children opportunity to augment cfg
-  const children = getChildren(config, plot);
+  const children = getChildren(config, plot, vizData);
 
   // generate final opts
   const opts = useMemo(() => config.builder.getOpts(), [config]);
@@ -84,7 +104,7 @@ export const UPlotChart = <TCtx,>(props: UPlotChartProps<TCtx>) => {
         width={width}
         height={height}
         opts={opts}
-        data={data}
+        data={vizData.data}
         oninit={oninit}
       />
     </>

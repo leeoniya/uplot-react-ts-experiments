@@ -14,8 +14,8 @@ import uPlot from "uplot";
 import { debugLog } from "../debug";
 import { UPlotChartConfig, UPlotChartEvent } from "./UPlotChart";
 
-interface UMouseProps {
-  config: UPlotChartConfig;
+interface UMouseProps<TCfg> {
+  config: TCfg;
   children: (
     evt: UPlotChartEvent | null,
     rect: DOMRect | null,
@@ -25,7 +25,7 @@ interface UMouseProps {
 }
 
 //export const UMouse: UPlotChartPlugin =
-export const UMouse = ({ config, children }: UMouseProps) => {
+export const UMouse = <TCfg,>({ config, children }: UMouseProps<TCfg>) => {
   debugLog("UMouse()");
 
   const [evt, setEvt] = useState<UPlotChartEvent | null>(null);

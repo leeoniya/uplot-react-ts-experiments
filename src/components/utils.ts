@@ -163,6 +163,7 @@ export const prepConfig = (
       );
 
       vizData = {
+      //  lookup: [],
         data: joined,
         joined: joined,
         // TODO: omit when not stacking

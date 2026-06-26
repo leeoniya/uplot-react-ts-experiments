@@ -89,6 +89,7 @@ export const UPlotChart = <TCtx extends CtxBase, TVizData extends VizDataBase>(
 
   // this expects that uPlot plugins will not amend the config in ways that affect how vizData() processes data (joins, stacking, negY)
   // it also relies on config to internally cache/bust the result in sync with ctx.data changes
+  // could be useMemo
   const vizData = config.vizData();
 
   // allow all children opportunity to augment cfg

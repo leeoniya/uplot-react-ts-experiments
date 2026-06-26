@@ -1,35 +1,30 @@
-# React Webpack Typescript Starter
-> Minimal starter with hot module replacement (HMR) for rapid development.
+# React + Bun + Typescript Starter
+> Minimal starter using [Bun](https://bun.sh) for bundling, dev server (with HMR / React Fast Refresh), and testing — no Webpack, Babel, or Jest required.
 
-* **[React](https://facebook.github.io/react/)** (17.x)
-* **[Webpack](https://webpack.js.org/)** (5.x)
-* **[Typescript](https://www.typescriptlang.org/)** (4.x)
-* **[Hot Module Replacement (HMR)](https://webpack.js.org/concepts/hot-module-replacement/)** ([React Hot Loader](https://github.com/gaearon/react-hot-loader))
-* Production build script (Webpack)
-* Image loading/minification ([Image Webpack Loader](https://github.com/tcoopman/image-webpack-loader))
-* [SASS](http://sass-lang.com/) support
-* Code linting ([ESLint](https://github.com/eslint/eslint)) and formatting ([Prettier](https://github.com/prettier/prettier))
-* Test framework ([Jest](https://facebook.github.io/jest/))
+* **[React](https://react.dev/)** (18.x)
+* **[Bun](https://bun.sh)** as the package manager, bundler, dev server, and test runner
+* **[Typescript](https://www.typescriptlang.org/)** (5.x) — transpiled by Bun, type-checked with `tsc`
+* Hot Module Replacement (HMR) via Bun's dev server
+* Production build + static file server, both powered by Bun
+* Tests via Bun's built-in test runner + [happy-dom](https://github.com/capricorn86/happy-dom)
 
 ## Installation
-1. Clone/download repo
-2. `yarn install` (or `npm install` for npm)
-3. This fork uses Yarn 3.2 &amp; PnP. For VSCode, install ZipFS plugin and follow https://yarnpkg.com/getting-started/editor-sdks#vscode
+1. Install [Bun](https://bun.sh) (`curl -fsSL https://bun.sh/install | bash`)
+2. `bun install`
 
 ## Usage
+
 **Development**
 
-`yarn run start-dev`
+`bun run dev`
 
-* Build app continuously (HMR enabled)
-* App served @ `http://localhost:8080`
+* Builds and serves the app with HMR @ `http://localhost:8080`
 
 **Production**
 
-`yarn run start-prod`
+`bun run start-prod`
 
-* Build app once (HMR disabled) to `/dist/`
-* App served @ `http://localhost:3000`
+* Builds the app to `/dist/` and serves it @ `http://localhost:3000`
 
 ---
 
@@ -37,18 +32,12 @@
 
 Command | Description
 --- | ---
-`yarn run start-dev` | Build app continuously (HMR enabled) and serve @ `http://localhost:8080`
-`yarn run start-prod` | Build app once (HMR disabled) to `/dist/` and serve @ `http://localhost:3000`
-`yarn run build` | Build app to `/dist/`
-`yarn run test` | Run tests
-`yarn run lint` | Run linter
-`yarn run lint --fix` | Run linter and fix issues
-`yarn run start` | (alias of `yarn run start-dev`)
-
-**Note**: replace `yarn` with `npm` in `package.json` if you use npm.
+`bun run dev` | Build + serve with HMR @ `http://localhost:8080` (alias: `bun run start`)
+`bun run build` | Build app to `/dist/`
+`bun run start-prod` | Build app and serve `/dist/` @ `http://localhost:3000`
+`bun test` | Run tests
+`bun run typecheck` | Type-check with `tsc --noEmit`
 
 ## See also
-* [React Webpack Babel Starter](https://github.com/vikpe/react-webpack-babel-starter)
-* [Snowpack](https://github.com/snowpackjs/snowpack)
-* [Create React App](https://github.com/facebook/create-react-app)
-* [Isomorphic Webapp Starter](https://github.com/vikpe/isomorphic-webapp-starter)
+* [Bun: Full-stack dev server](https://bun.sh/docs/bundler/fullstack)
+* [Bun: Test runner](https://bun.sh/docs/cli/test)

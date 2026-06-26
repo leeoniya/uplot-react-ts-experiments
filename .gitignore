@@ -3,12 +3,5 @@
 dist/
 node_modules/
 src/**/*.jsx
-tests/__coverage__/
 tests/**/*.jsx
-.pnp/
-.pnp.*
-.yarn/cache
-.yarn/sdks
-.yarn/unplugged
-.yarn/install-state.gz
-.yarnrc
+tests/__coverage__/

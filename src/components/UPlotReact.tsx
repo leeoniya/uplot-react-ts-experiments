@@ -27,7 +27,7 @@ export const UPlotReact = ({
 }: UPlotReactProps) => {
   debugLog("UPlotReact()");
 
-  const wrap = useRef<HTMLDivElement>();
+  const wrap = useRef<HTMLDivElement | null>(null);
   const plot = useRef<uPlot | null>(null);
 
   const diffProps: DedicatedMethodProps = [width, height, data];

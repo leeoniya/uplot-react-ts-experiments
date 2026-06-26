@@ -18,5 +18,5 @@
     "resolveJsonModule": true,
     "isolatedModules": true
   },
-  "include": ["src", "tests", "serve.ts"]
+  "include": ["src", "serve.ts"]
 }

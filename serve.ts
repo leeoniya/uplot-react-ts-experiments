@@ -1,35 +1,17 @@
-import { file } from "bun";
-import { join, normalize } from "node:path";
+import index from "./index.html";
 
-const portNumber = 3000;
-const sourceDir = "dist";
+const isDev = process.env.NODE_ENV !== "production";
+const portNumber = Number(process.env.BUN_PORT ?? (isDev ? 8080 : 3000));
 
 const server = Bun.serve({
   port: portNumber,
-  async fetch(req) {
-    const url = new URL(req.url);
-
-    // Strip leading slash and normalize to prevent path traversal.
-    const relativePath = normalize(decodeURIComponent(url.pathname)).replace(
-      /^(\.\.(\/|\\|$))+/,
-      "",
-    );
-    let candidate = join(sourceDir, relativePath);
-
-    let f = file(candidate);
-    if (!(await f.exists()) || url.pathname.endsWith("/")) {
-      // Fall back to index.html (SPA history fallback).
-      candidate = join(sourceDir, "index.html");
-      f = file(candidate);
-    }
-
-    if (await f.exists()) {
-      return new Response(f);
-    }
-
-    return new Response("Not found", { status: 404 });
+  // Bundle and serve the HTML entrypoint (and its assets) directly.
+  // The wildcard route doubles as the SPA history fallback.
+  // HMR is enabled in dev; disabled (with minification) in production.
+  development: isDev && { hmr: true },
+  routes: {
+    "/*": index,
   },
 });
 
-console.log(`Bun web server started: ${server.url}`);
-console.log(`Serving content from /${sourceDir}/`);
+console.log(`Bun web server started (${isDev ? "dev" : "prod"}): ${server.url}`);
